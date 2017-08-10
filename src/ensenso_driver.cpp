@@ -23,15 +23,18 @@
 #include <ensenso/CalibrateHandEye.h>
 #include <ensenso/CollectPattern.h>
 #include <ensenso/EstimatePatternPose.h>
-
+// Nodelet
+#include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
 
 // Typedefs
 typedef std::pair<pcl::PCLImage, pcl::PCLImage> PairOfImages;
 typedef pcl::PointXYZ PointXYZ;
 typedef pcl::PointCloud<PointXYZ> PointCloudXYZ;
 
-
-class EnsensoDriver
+namespace ensenso_driver
+{
+class EnsensoDriver : public nodelet::Nodelet
 {
   private:
     // ROS
@@ -65,9 +68,24 @@ class EnsensoDriver
   public:
      EnsensoDriver():
       is_streaming_images_(false),
-      is_streaming_cloud_(false),
-      nh_private_("~")
+      is_streaming_cloud_(false)
+    { }
+    
+    ~EnsensoDriver()
     {
+      connection_.disconnect();
+      ensenso_ptr_->closeTcpPort();
+      ensenso_ptr_->closeDevice();
+    }
+
+    virtual void onInit()
+    {
+      NODELET_DEBUG("Initializing nodelet...");
+
+      // Get private nodehandle
+      nh_ = getNodeHandle();
+      nh_private_ = getPrivateNodeHandle();
+
       // Read parameters
       std::string serial;
       nh_private_.param(std::string("serial"), serial, std::string("150534"));
@@ -105,14 +123,7 @@ class EnsensoDriver
       calibrate_srv_ = nh_.advertiseService("calibrate_handeye", &EnsensoDriver::calibrateHandEyeCB, this);
       pattern_srv_ = nh_.advertiseService("estimate_pattern_pose", &EnsensoDriver::estimatePatternPoseCB, this);
       collect_srv_ = nh_.advertiseService("collect_pattern", &EnsensoDriver::collectPatternCB, this);
-      ROS_INFO("Finished [ensenso_driver] initialization");
-    }
-    
-    ~EnsensoDriver()
-    {
-      connection_.disconnect();
-      ensenso_ptr_->closeTcpPort();
-      ensenso_ptr_->closeDevice();
+      ROS_INFO("Finished [ensenso_driver] initialization");      
     }
     
     bool calibrateHandEyeCB(ensenso::CalibrateHandEye::Request& req, ensenso::CalibrateHandEye::Response &res)
@@ -502,12 +513,7 @@ class EnsensoDriver
     }
 };
 
+PLUGINLIB_DECLARE_CLASS(ensenso_driver, EnsensoDriver, ensenso_driver::EnsensoDriver, nodelet::Nodelet);
+} // namespace ensenso_driver
 
-int main(int argc, char **argv)
-{
-  ros::init (argc, argv, "ensenso_driver");
-  EnsensoDriver driver;
-  ros::spin();
-  ros::shutdown();
-  return 0;
-}
+

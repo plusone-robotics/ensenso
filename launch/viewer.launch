@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-  
   <arg name="serial" default="160883" />
   <arg name="rqt" default="False" />
   <arg name="rviz" default="False" />
@@ -8,12 +7,18 @@
   <!-- Logging -->
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find ensenso)/config/rosconsole.conf"/>
   
+  <node pkg="nodelet" type="nodelet" name="ensenso_driver_nodelet"  args="manager" ns="camera" output="screen"/>
+
   <!-- Ensenso driver -->
-  <node name="ensenso_driver" pkg="ensenso" type="ensenso_driver" ns="camera" output="screen"> 
+  <node pkg="nodelet" type="nodelet" name="ensenso_driver" args="load ensenso_driver/EnsensoDriver ensenso_driver_nodelet" ns="camera" output="screen">
     <!-- Static parameters -->
     <param name="stream_calib_pattern"  type="bool"   value="False" />
     <param name="serial"                type="string" value="$(arg serial)" />
     <param name="camera_frame_id"       type="string" value="camera_optical_frame" />
+  </node>
+
+   <!-- Driver configuration -->
+  <node name="driver_dynconfig" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters ensenso_driver/EnsensoDriver" ns="camera">
     <!-- Capture parameters -->
     <param name="AutoBlackLevel"    type="bool"   value="true" />
     <param name="AutoExposure"      type="bool"   value="true" />
