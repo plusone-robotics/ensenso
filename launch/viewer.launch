@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   
-  <arg name="serial" default="150534" />
-  <arg name="rqt" default="True" />
+  <arg name="serial" default="160883" />
+  <arg name="rqt" default="False" />
   <arg name="rviz" default="False" />
   
   <!-- Logging -->
