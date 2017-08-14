@@ -68,7 +68,8 @@ class EnsensoDriver : public nodelet::Nodelet
   public:
      EnsensoDriver():
       is_streaming_images_(false),
-      is_streaming_cloud_(false)
+      is_streaming_cloud_(false),
+      reconfigure_server_(ros::NodeHandle("~/ensenso"))
     { }
     
     ~EnsensoDriver()
@@ -98,16 +99,16 @@ class EnsensoDriver : public nodelet::Nodelet
       if (!nh_private_.hasParam("stream_calib_pattern"))
         ROS_WARN_STREAM("Parameter [~stream_calib_pattern] not found, using default: " << (stream_calib_pattern_ ? "TRUE":"FALSE"));
       // Advertise topics
-      image_transport::ImageTransport it(nh_);
+      image_transport::ImageTransport it(nh_private_);
       l_raw_pub_ = it.advertiseCamera("left/image_raw", 1);
       r_raw_pub_ = it.advertiseCamera("right/image_raw", 1);
       l_rectified_pub_ = it.advertise("left/image_rect", 1);
       r_rectified_pub_ = it.advertise("right/image_rect", 1);
-      cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2 >("depth/points", 1, false);
-      linfo_pub_=nh_.advertise<sensor_msgs::CameraInfo> ("left/camera_info", 1, false);
-      rinfo_pub_=nh_.advertise<sensor_msgs::CameraInfo> ("right/camera_info", 1, false);
-      pattern_raw_pub_=nh_.advertise<ensenso::RawStereoPattern> ("pattern/stereo", 1, false);
-      pattern_pose_pub_=nh_.advertise<geometry_msgs::PoseStamped> ("pattern/pose", 1, false);
+      cloud_pub_ = nh_private_.advertise<sensor_msgs::PointCloud2 >("depth/points", 1, false);
+      linfo_pub_=nh_private_.advertise<sensor_msgs::CameraInfo> ("left/camera_info", 1, false);
+      rinfo_pub_=nh_private_.advertise<sensor_msgs::CameraInfo> ("right/camera_info", 1, false);
+      pattern_raw_pub_=nh_private_.advertise<ensenso::RawStereoPattern> ("pattern/stereo", 1, false);
+      pattern_pose_pub_=nh_private_.advertise<geometry_msgs::PoseStamped> ("pattern/pose", 1, false);
       // Initialize Ensenso
       ensenso_ptr_.reset(new pcl::EnsensoGrabber);
       ensenso_ptr_->openDevice(serial);
@@ -120,9 +121,9 @@ class EnsensoDriver : public nodelet::Nodelet
       // Start the camera.
       ensenso_ptr_->start();
       // Advertise services
-      calibrate_srv_ = nh_.advertiseService("calibrate_handeye", &EnsensoDriver::calibrateHandEyeCB, this);
-      pattern_srv_ = nh_.advertiseService("estimate_pattern_pose", &EnsensoDriver::estimatePatternPoseCB, this);
-      collect_srv_ = nh_.advertiseService("collect_pattern", &EnsensoDriver::collectPatternCB, this);
+      calibrate_srv_ = nh_private_.advertiseService("calibrate_handeye", &EnsensoDriver::calibrateHandEyeCB, this);
+      pattern_srv_ = nh_private_.advertiseService("estimate_pattern_pose", &EnsensoDriver::estimatePatternPoseCB, this);
+      collect_srv_ = nh_private_.advertiseService("collect_pattern", &EnsensoDriver::collectPatternCB, this);
       ROS_INFO("Finished [ensenso_driver] initialization");      
     }
     
