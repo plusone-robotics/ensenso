@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_srvs
   tf_conversions
   image_transport
+  nodelet
 )
 
 find_package(Boost REQUIRED COMPONENTS system filesystem thread)
@@ -62,6 +63,7 @@ catkin_package(
     pcl_conversions
     pcl_ros
     tf_conversions
+    nodelet
 )
 
 # Order of the include dirs matters!
@@ -76,6 +78,10 @@ add_definitions(${PCL_DEFINITIONS})
 add_library(ensenso_grabber src/ensenso_grabber.cpp)
 target_link_libraries(ensenso_grabber ${ENSENSO_LIBRARIES} ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 
-add_executable(ensenso_driver src/ensenso_driver.cpp)
+add_library(ensenso_driver src/ensenso_driver.cpp)
 add_dependencies(ensenso_driver ${catkin_EXPORTED_TARGETS})
 target_link_libraries(ensenso_driver ensenso_grabber ${PCL_LIBRARIES} ${catkin_LIBRARIES})
+
+install(FILES nodelet_plugins.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/
+)

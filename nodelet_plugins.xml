@@ -1,0 +1,7 @@
+<library path="lib/libensenso_driver">
+  <class name="ensenso_driver/EnsensoDriver" type="ensenso_driver::EnsensoDriver" base_class_type="nodelet::Nodelet">
+    <description>
+      This is a nodelet for the Ensenso Driver.
+    </description>
+  </class>
+</library>
